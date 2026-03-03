@@ -2,23 +2,29 @@ from manim import *
 
 class KGVectorStoreComparisonScene(Scene):
     def construct(self):
+        audio_file = "./assets/audio/kg_vec_comparison.m4a"
+        self.add_sound(audio_file, time_offset=0.5)
+        kg_logo = SVGMobject("./assets/neo4j.svg",stroke_color=BLUE,fill_color=BLUE ,stroke_width=0.5, height=0.5)
+        vs_logo = SVGMobject("./assets/qdrant.svg", height=1.2)
         kg_circle = Circle(radius=1.0, color=BLUE, fill_color=BLUE, fill_opacity=0.2)
         vs_circle = Circle(radius=1.0, color=GREEN, fill_color=GREEN, fill_opacity=0.3)
 
         kg_label = Text("Knowledge Graph", font_size=28, color=BLUE)
         vs_label = Text("Vector Store", font_size=28, color=GREEN)
 
-        kg_group = VGroup(kg_circle, kg_label)
-        vs_group = VGroup(vs_circle, vs_label)
+        kg_group = VGroup(kg_circle, kg_label, kg_logo)
+        vs_group = VGroup(vs_circle, vs_label, vs_logo)
 
         kg_label.next_to(kg_circle, DOWN, buff=0.3)
         vs_label.next_to(vs_circle, DOWN, buff=0.3)
+        kg_logo.move_to(kg_circle.get_center())
+        vs_logo.move_to(vs_circle.get_center())
 
-        kg_group.to_edge(LEFT, buff=4)
-        vs_group.to_edge(RIGHT, buff=4)
+        kg_group.to_edge(LEFT, buff=2)
+        vs_group.to_edge(RIGHT, buff=2)
 
         self.play(FadeIn(kg_group))
-        self.wait(1)
+        self.wait(4)
         self.play(FadeIn(vs_group))
         self.wait(1)
 
@@ -34,18 +40,26 @@ class KGVectorStoreComparisonScene(Scene):
         kg_label_center.next_to(kg_outer, DOWN, buff=0.25)
         vs_label_center.next_to(vs_inner, DOWN, buff=0.25)
 
+        kg_logo_moved = kg_logo.copy()
+        kg_logo_moved.move_to(kg_outer.get_center()+UP*1.5)
+        vs_logo_moved = vs_logo.copy()
+        vs_logo_moved.move_to(vs_inner.get_center())
+
         self.play(
             Transform(kg_circle, kg_outer),
             Transform(vs_circle, vs_inner),
             Transform(kg_label, kg_label_center),
             Transform(vs_label, vs_label_center),
+            Transform(kg_logo, kg_logo_moved),
+            Transform(vs_logo, vs_logo_moved),
             run_time=1,
         )
 
-        self.wait(1)
+        self.wait(2)
 
 class VectorStoreKGStructureScene(Scene):
     def construct(self):
+        self.add_sound("./assets/audio/vec_store_kg_structure.m4a", time_offset=0.5)
         pdf_rect = RoundedRectangle(
             width=5.0,
             height=2.0,
@@ -58,7 +72,7 @@ class VectorStoreKGStructureScene(Scene):
         pdf_group = VGroup(pdf_rect, pdf_title)
 
         self.play(FadeIn(pdf_group), run_time=1)
-        self.wait(0.5)
+        self.wait(2)
 
         chunks = VGroup(
             *[
@@ -83,7 +97,7 @@ class VectorStoreKGStructureScene(Scene):
         chunk_group = VGroup(chunks, chunk_labels)
 
         self.play(Transform(pdf_group, chunk_group), run_time=1.6)
-        self.wait(0.5)
+        self.wait(3)
 
         embeddings_text = [
             "[0.2, ... ,0.8]",
@@ -106,6 +120,7 @@ class VectorStoreKGStructureScene(Scene):
                 emb.next_to(rect, RIGHT, buff=1)
                 self.play(TransformFromCopy(rect, emb), run_time=0.8)
                 meta.next_to(emb, RIGHT, buff=0.3)
+                self.wait(1)
                 self.play(FadeIn(meta), run_time=0.8)
                 self.wait(1)
             else:
@@ -151,12 +166,13 @@ class VectorStoreKGStructureScene(Scene):
         refers_label_2 = Text("REFERS_TO", font_size=15, color=ORANGE)
         refers_label_2.next_to(refers_arrow_2, RIGHT, buff=0.2)
         refers_label_2.shift(DOWN * 0.5)
-
+        self.wait(2)
         self.play(
             LaggedStart(*[Create(arrow) for arrow in next_arrows], lag_ratio=0.15),
             LaggedStart(*[FadeIn(label) for label in next_labels], lag_ratio=0.15),
             run_time=1.8,
         )
+        self.wait(1)
 
         self.play(
             Create(refers_arrow_1),
@@ -169,8 +185,7 @@ class VectorStoreKGStructureScene(Scene):
         knowledge_graph_text = Text("Knowledge Graph", font_size=30, color=BLUE)
         knowledge_graph_text.move_to(vector_store_text.get_center())
         self.play(Transform(vector_store_text, knowledge_graph_text), run_time=1)
-        self.wait(1)
-
+        self.wait(10)
         dim_overlay = Rectangle(
             width=config.frame_width,
             height=config.frame_height,
@@ -190,8 +205,9 @@ similar to search term""",
         query_text = VGroup(*[Text(part, font_size=22, color=WHITE) for part in query_text_parts])
         query_text.arrange(DOWN, aligned_edge=LEFT, buff=0.3)
         query_text.set_z_index(2)
-        query_text.to_edge(RIGHT, buff=2).shift(UP * 0.5)
-        self.play(Write(query_text), run_time=4)
+        query_text.to_edge(RIGHT, buff=1.5).shift(UP * 0.5)
+        self.play(Write(query_text), run_time=10)
+        self.wait(2)
 
         cypher_query_parts = ["""
 CALL db.index.vector.queryNodes(
@@ -217,25 +233,24 @@ RETURN DISTINCT expanded
             part_text.move_to(query_text[i].get_center()).align_to(query_text[i], LEFT)
 
             self.play(Transform(query_text[i], part_text), run_time=1.5)
-            self.wait(0.5)
-        for i in range(len(cypher_query_parts)):
-            if i > 0:
-                self.play(query_text[i].animate.set_z_index(0), run_time=0.1)
-  
-        self.play(embeddings[3].animate.set_z_index(2), run_time=0.9)
+            self.wait(0.3)
+        
+        # set all z index to 0 in parallel
         self.play(
-            VGroup(chunks[3], chunk_labels[3]).animate.set_z_index(2),
-            run_time=0.9,
+            *[query_text[i].animate.set_z_index(0) for i in range(len(cypher_query_parts))],
+            run_time=0.1,
         )
+        self.wait(3)
+        self.play(query_text[0].animate.set_z_index(2), run_time=0.5)
+        self.play(embeddings[3].animate.set_z_index(2),VGroup(chunks[3], chunk_labels[3]).animate.set_z_index(2), run_time=0.9)
+        self.wait(2)
         self.play(query_text[1].animate.set_z_index(2), run_time=0.5)
         self.play(
             VGroup(refers_arrow_1, refers_label_1).animate.set_z_index(2),
-            run_time=0.9,
-        )
-        self.play(
             VGroup(chunks[0], chunk_labels[0]).animate.set_z_index(2),
             run_time=0.9,
         )
+        self.wait(2)
         self.play(query_text[2].animate.set_z_index(2), run_time=0.5)
         
         self.play(
@@ -245,8 +260,8 @@ RETURN DISTINCT expanded
             VGroup(chunks[4], chunk_labels[4]).animate.set_z_index(2),
             run_time=1.3,
         )
+        self.wait(3)
         self.play(query_text[3].animate.set_z_index(2), run_time=0.5)
-        
 
         self.play(
             VGroup(metadatas[0], metadatas[1], metadatas[3]).animate.set_z_index(2),
@@ -263,3 +278,10 @@ RETURN DISTINCT expanded
         self.play(disabled_chunk_5.animate.set_z_index(0), run_time=1)
         self.wait(1)
 
+class MainScene(Scene):
+    def construct(self):
+        KGVectorStoreComparisonScene.construct(self)
+        # clear the scene for next one
+        self.clear()
+        self.wait(1)
+        VectorStoreKGStructureScene.construct(self)
