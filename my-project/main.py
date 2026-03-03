@@ -212,16 +212,12 @@ RETURN DISTINCT expanded
 """
         ]
         
-        # replace each query part with correxponding cyper query
         for i, part in enumerate(cypher_query_parts):
             part_text = Text(part, font_size=18, color=WHITE)
-            # position the part text at the same location as the query text part
-            # while transform, the start position of the part text should be the same as the query text part
             part_text.move_to(query_text[i].get_center()).align_to(query_text[i], LEFT)
 
             self.play(Transform(query_text[i], part_text), run_time=1.5)
             self.wait(0.5)
-        # set z-index of parts of the query to 0 one by one while keeping the current part at z-index 2
         for i in range(len(cypher_query_parts)):
             if i > 0:
                 self.play(query_text[i].animate.set_z_index(0), run_time=0.1)
