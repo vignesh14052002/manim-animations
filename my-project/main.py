@@ -1,84 +1,172 @@
 from manim import *
 
-class DefaultTemplate(MovingCameraScene):
-    def create_node(self, label, **kwargs):
-        circle = Circle(**kwargs)
-
-        lines = label.split("\n")
-        if len(lines) > 1:
-            text = Paragraph(*lines, alignment="center", font_size=24)
-        else:
-            text = Text(label, font_size=24)
-
-        text.next_to(circle, DOWN)
-        return VGroup(circle, text)
-    
+class KGVectorStoreComparisonScene(Scene):
     def construct(self):
-        # self.play_high_level_agent_workflow()
-        # return
+        kg_circle = Circle(radius=1.0, color=BLUE, fill_color=BLUE, fill_opacity=0.2)
+        vs_circle = Circle(radius=1.0, color=GREEN, fill_color=GREEN, fill_opacity=0.3)
 
+        kg_label = Text("Knowledge Graph", font_size=28, color=BLUE)
+        vs_label = Text("Vector Store", font_size=28, color=GREEN)
 
+        kg_group = VGroup(kg_circle, kg_label)
+        vs_group = VGroup(vs_circle, vs_label)
 
-        query_generator = self.create_node("Query\nGenerator", color=BLUE, radius=0.5).shift(LEFT * 4)
-        document_retriever = self.create_node("Document\nRetriever", color=BLUE, radius=0.5).shift(LEFT * 4)
-        context_filter = self.create_node("Context\nFilter", color=BLUE, radius=0.5)
-        answer_generator = self.create_node("Answer\nGenerator", color=BLUE, radius=0.5)
-        document_retriever.next_to(query_generator, RIGHT, buff=2)
-        context_filter.next_to(document_retriever, RIGHT, buff=2)
-        answer_generator.next_to(context_filter, RIGHT, buff=2)
-        # connect the two node's circles with an arrow
-        arrow = Arrow(query_generator[0].get_right(), document_retriever[0].get_left())
-        arrow1 = Arrow(document_retriever[0].get_right(), context_filter[0].get_left())
-        arrow2 = Arrow(context_filter[0].get_right(), answer_generator[0].get_left())
-        self.add(arrow, arrow1, arrow2)
-        self.add(query_generator, document_retriever, context_filter, answer_generator)
-        self.camera.frame.save_state()
-        self.play(self.camera.frame.animate.set(width=1).move_to(query_generator[0]))
-        user_query = Paragraph("How much revenue our company","made last quarter?", alignment="center", font_size=24)
-        retrieval_query = Text("Google's 2025 Q1 Revenue", font_size=24).next_to(user_query, DOWN, buff=1)
-        a1 = Arrow(user_query.get_bottom(), retrieval_query.get_top(), buff=0.2)
-        a1.set_stroke(width=1)
-        query_group = VGroup(user_query, retrieval_query, a1)
-        query_group.scale_to_fit_width(self.camera.frame.get_width() * 0.8)  # fit inside zoomed view
-        query_group.move_to(self.camera.frame.get_center())#.shift(0.25 * self.camera.frame.get_width() * UP)
-        
-        self.play(Write(user_query))
-        self.play(GrowArrow(a1))
-        self.play(Write(retrieval_query))
+        kg_label.next_to(kg_circle, DOWN, buff=0.3)
+        vs_label.next_to(vs_circle, DOWN, buff=0.3)
 
-    def play_high_level_agent_workflow(self):
-        user_query = Text("User Query", font_size=24).shift(3 * LEFT)
+        kg_group.to_edge(LEFT, buff=4)
+        vs_group.to_edge(RIGHT, buff=4)
 
-        ai_bot = SVGMobject(
-            "./assets/ai-bot.svg", stroke_color=WHITE, stroke_width=4
-        ).set(height=1.5)
-        database = SVGMobject(
-            "./assets/database.svg", stroke_color=WHITE, stroke_width=4
-        ).set(height=1.5)
-
-        # Lay out left -> right to avoid overlap
-        ai_bot.next_to(user_query, RIGHT, buff=2.0)
-        database.next_to(ai_bot, RIGHT, buff=2.0)
-
-        db_label = Text("Knowledge Base", font_size=24).next_to(database, DOWN)
-
-        arrow1 = Arrow(user_query.get_right(), ai_bot.get_left(), buff=0.2)
-        arrow2 = Arrow(ai_bot.get_right(), database.get_left(), buff=0.2)
-
-        self.play(FadeIn(ai_bot))
+        self.play(FadeIn(kg_group))
         self.wait(1)
-        self.play(FadeIn(database),Write(user_query), Write(db_label))
+        self.play(FadeIn(vs_group))
         self.wait(1)
-        self.play(GrowArrow(arrow1))
-        self.play(GrowArrow(arrow2))
-        # Fade out all elements
-        self.wait(1)
+
+        kg_outer = Circle(radius=2.1, color=BLUE, fill_color=BLUE, fill_opacity=0.18)
+        vs_inner = Circle(radius=1.0, color=GREEN, fill_color=GREEN, fill_opacity=0.35)
+
+        kg_outer.move_to(ORIGIN)
+        vs_inner.move_to(ORIGIN)
+
+        kg_label_center = Text("Knowledge Graph", font_size=30, color=BLUE)
+        vs_label_center = Text("Vector Store", font_size=24, color=GREEN)
+
+        kg_label_center.next_to(kg_outer, DOWN, buff=0.25)
+        vs_label_center.next_to(vs_inner, DOWN, buff=0.25)
+
         self.play(
-            FadeOut(user_query),
-            FadeOut(ai_bot),
-            FadeOut(database),
-            FadeOut(db_label),
-            FadeOut(arrow1),
-            FadeOut(arrow2),
+            Transform(kg_circle, kg_outer),
+            Transform(vs_circle, vs_inner),
+            Transform(kg_label, kg_label_center),
+            Transform(vs_label, vs_label_center),
+            run_time=1,
         )
-        
+
+        self.wait(1)
+
+class VectorStoreKGStructureScene(Scene):
+    def construct(self):
+        pdf_rect = RoundedRectangle(
+            width=5.0,
+            height=3.0,
+            corner_radius=0.15,
+            color=BLUE,
+            fill_color=BLUE,
+            fill_opacity=0.15,
+        )
+        pdf_title = Text("Document", font_size=34, color=BLUE)
+        pdf_group = VGroup(pdf_rect, pdf_title)
+
+        self.play(FadeIn(pdf_group), run_time=1)
+        self.wait(0.5)
+
+        chunks = VGroup(
+            *[
+                RoundedRectangle(
+                    width=3.2,
+                    height=0.75,
+                    corner_radius=0.08,
+                    color=BLUE,
+                    fill_color=BLUE,
+                    fill_opacity=0.15,
+                )
+                for _ in range(5)
+            ]
+        )
+        chunks.arrange(DOWN, buff=0.5)
+        chunks.move_to(LEFT * 2)
+
+        chunk_labels = VGroup(*[Text(f"Chunk {i+1}", font_size=24, color=BLUE) for i in range(5)])
+        for label, rect in zip(chunk_labels, chunks):
+            label.move_to(rect.get_center())
+
+        chunk_group = VGroup(chunks, chunk_labels)
+
+        self.play(Transform(pdf_group, chunk_group), run_time=1.6)
+        self.wait(0.5)
+
+        embeddings_text = [
+            "[0.2, ... ,0.8]",
+            "[0.9, ... ,0.6]",
+            "[0.3, ... ,0.2]",
+            "[0.5, ... ,0.9]",
+            "[0.1, ... ,0.4]",
+        ]
+        embeddings = VGroup(*[Text(text, font_size=22, color=WHITE) for text in embeddings_text])
+        metadatas_text = [
+            "Page: 1",
+            "Page: 1",
+            "Page: 2",
+            "Page: 3",
+            "Page: 3",
+        ]
+        metadatas = VGroup(*[Text(text, font_size=18, color=WHITE) for text in metadatas_text])
+        for emb, rect, meta in zip(embeddings, chunks, metadatas):
+            if emb == embeddings[0]:
+                emb.next_to(rect, RIGHT, buff=1)
+                self.play(TransformFromCopy(rect, emb), run_time=0.8)
+                meta.next_to(emb, RIGHT, buff=0.5)
+                self.play(FadeIn(meta), run_time=0.8)
+                self.wait(1)
+            else:
+                emb.next_to(rect, RIGHT, buff=1)
+                self.play(TransformFromCopy(rect, emb), run_time=0.5)
+                meta.next_to(emb, RIGHT, buff=0.5)
+                self.play(FadeIn(meta), run_time=0.5)
+
+        vector_store_text = Text("Vector Store", font_size=36, color=GREEN)
+        vector_store_text.to_edge(DOWN, buff=0.6)
+
+        self.play(Write(vector_store_text), run_time=0.8)
+        self.wait(0.5)
+
+        next_arrows = VGroup()
+        next_labels = VGroup()
+        for i in range(4):
+            start = chunks[i].get_bottom()
+            end = chunks[i + 1].get_top()
+            arrow = Arrow(start, end, buff=0.05, color=YELLOW, stroke_width=4)
+            label = Text("NEXT_TO", font_size=20, color=YELLOW)
+            label.next_to(arrow, LEFT, buff=0.15)
+            next_arrows.add(arrow)
+            next_labels.add(label)
+
+        refers_arrow_1 = CurvedArrow(
+            start_point=chunks[3].get_left() + LEFT * 0.05,
+            end_point=chunks[0].get_left() + LEFT * 0.05,
+            angle=-PI / 2,
+            color=ORANGE,
+            stroke_width=4,
+        )
+        refers_label_1 = Text("REFERS_TO", font_size=20, color=ORANGE)
+        refers_label_1.next_to(refers_arrow_1, LEFT, buff=0.2)
+
+        refers_arrow_2 = CurvedArrow(
+            start_point=chunks[4].get_right() + RIGHT * 0.05,
+            end_point=chunks[2].get_right() + RIGHT * 0.05,
+            angle=PI / 2,
+            color=ORANGE,
+            stroke_width=4,
+        )
+        refers_label_2 = Text("REFERS_TO", font_size=20, color=ORANGE)
+        refers_label_2.next_to(refers_arrow_2, RIGHT, buff=0.2)
+        refers_label_2.shift(DOWN * 0.5)
+
+        self.play(
+            LaggedStart(*[Create(arrow) for arrow in next_arrows], lag_ratio=0.15),
+            LaggedStart(*[FadeIn(label) for label in next_labels], lag_ratio=0.15),
+            run_time=1.8,
+        )
+
+        self.play(
+            Create(refers_arrow_1),
+            Create(refers_arrow_2),
+            FadeIn(refers_label_1),
+            FadeIn(refers_label_2),
+            run_time=1.6,
+        )
+
+        knowledge_graph_text = Text("Knowledge Graph", font_size=36, color=BLUE)
+        knowledge_graph_text.move_to(vector_store_text.get_center())
+        self.play(Transform(vector_store_text, knowledge_graph_text), run_time=1)
+        self.wait(1)
