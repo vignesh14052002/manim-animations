@@ -276,4 +276,4 @@ RETURN DISTINCT expanded
             next_labels[3],
         )
         self.play(disabled_chunk_5.animate.set_z_index(0), run_time=1)
-        self.wait(1)
+        self.wait(4)

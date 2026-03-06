@@ -229,4 +229,4 @@ class KGCreation(Scene):
         delete_text = Text("DETACH DELETE v,r", font_size=16, color=WHITE)
         delete_text.next_to(q1, DOWN, buff=0.2).align_to(cypher_title, LEFT)
         self.play(Transform(return_text, delete_text), run_time=0.5)
-        self.wait(1.0)
+        self.wait(5)
