@@ -21,4 +21,4 @@ There are many ways to create a animation video such as using animation software
 - once we pick a domain and style to create animations, we can create utilities to ease the process
 - lightweight, the generated animation resolution is `1920*1080` but the size is just 10mb
 - I want to tryout vibe coding to see the potential of state-of-the-art gen-ai models (i am impressed)
-- I am big fan of [Grant Sanderson](https://www.youtube.com/@3blue1brown) and wanted to tryout his cool tool for a long time
+- I am a big fan of [Grant Sanderson](https://www.youtube.com/@3blue1brown) and wanted to tryout his cool tool for a long time
